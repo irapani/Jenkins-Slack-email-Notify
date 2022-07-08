@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    
+    parameters { 
+        booleanParam(name: 'Slack_notify', defaultValue: false, description: 'Send a Notification to Slack') 
+        string(name: 'slack_channel', defaultValue: 'false', description: 'Send noitfication to Slack Channel.')
+        booleanParam(name: 'Email_notify', defaultValue: false, description: 'Send a Notification to Email')
+        string(name: 'EmailAddress', defaultValue: 'false', description: 'Send notification to Email address.')
+        string(name: 'Calling AnotherJob', defaultValue: 'false', description: 'calling Cloudauth-notify')
+        string(name: 'Message', defaultValue: 'false', description: 'Message to send. Required')
+        
+    }
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+                // sh move
+                build job: "cloudauth-notify"
+            }
+        }
+    }
+    post 
+    {
+        success
+        {
+            //slackSend channel: 'cloudauth-operations-qa'
+            slackSend channel: "${slack_channel}", color: '#2eb8b7', 
+            message: "Build Status: ${currentBuild.currentResult}\n Job Name: ${env.JOB_NAME}\n Build Number: ${env.BUILD_NUMBER}\n Build URL: ${env.BUILD_URL}", 
+            tokenCredentialId: '939fd28e-bb80-43ae-915a-8bf27e5ee074'
+        }
+        failure
+        {
+            //slackSend channel: 'cloudauth-operations-qa'
+            slackSend channel: "${slack_channel}", color: '#D14748', 
+            message: "Build Status: ${currentBuild.currentResult}\n Job Name: ${env.JOB_NAME}\n Build Number: ${env.BUILD_NUMBER}\n Build URL: ${env.BUILD_URL}",
+            tokenCredentialId: '939fd28e-bb80-43ae-915a-8bf27e5ee074'
+        }
+    }
+}
